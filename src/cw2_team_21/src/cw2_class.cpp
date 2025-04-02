@@ -165,28 +165,12 @@ void cw2::cw2::colorImageCallback(const sensor_msgs::Image& msg)
 
 void cw2::cw2::octomapCallback(const sensor_msgs::PointCloud2ConstPtr &cloud_input_msg)
 {
-  // This processing would be better inside the PointCloudProcessing class, but we'll handle it here for now
-  // and forward the resulting data to publishers
+  // Forward to point cloud processing module
+  point_cloud_processing_.processOctomapPointCloud(cloud_input_msg);
   
-  // Process octomap point cloud in main class (this could be moved to point_cloud_processing in a full refactoring)
-  pcl::PCLPointCloud2 octomap_pc;
-  pcl::PointCloud<pcl::PointXYZ>::Ptr octomap_ptr(new pcl::PointCloud<pcl::PointXYZ>);
-  pcl::PointCloud<pcl::PointXYZ>::Ptr octomap_filtered(new pcl::PointCloud<pcl::PointXYZ>);
-  
-  // Convert ROS message to PCL point cloud
-  pcl_conversions::toPCL(*cloud_input_msg, octomap_pc);
-  pcl::fromPCLPointCloud2(octomap_pc, *octomap_ptr);
-
-  // Create the filtering object
-  pcl::PassThrough<pcl::PointXYZ> octomap_pt;
-  octomap_pt.setInputCloud(octomap_ptr);
-  octomap_pt.setFilterFieldName("z");
-  octomap_pt.setFilterLimits(0.04, 0.5);
-  octomap_pt.filter(*octomap_filtered);
-
-  // Convert PCL point cloud to ROS message
+  // Publish the filtered octomap
   sensor_msgs::PointCloud2 octomap_filtered_msg;
-  pcl::toROSMsg(*octomap_filtered, octomap_filtered_msg);
+  pcl::toROSMsg(*(point_cloud_processing_.getFilteredOctomapPtr()), octomap_filtered_msg);
   g_pub_octomap.publish(octomap_filtered_msg);
 }
 

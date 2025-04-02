@@ -22,7 +22,16 @@ std::tuple<uint64_t, uint64_t> EnvironmentScanner::executeTask() {
 
   // Create snapshot of point cloud for processing
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
-  pcl::copyPointCloud(*(point_cloud_proc_.getFilteredOctomapPtr()), *cloud);
+  pcl::PointCloud<pcl::PointXYZ>::Ptr octomap_filtered = point_cloud_proc_.getFilteredOctomapPtr();
+  
+  // Check if the filtered octomap is empty
+  if (octomap_filtered->empty()) {
+    ROS_ERROR("Filtered octomap point cloud is empty! Cannot proceed with clustering.");
+    return std::make_tuple(0, 0);
+  }
+  
+  pcl::copyPointCloud(*octomap_filtered, *cloud);
+  ROS_INFO("Copied point cloud with %lu points for clustering", cloud->size());
 
   // Cluster the point cloud into separate objects
   std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> clusters = 

@@ -57,6 +57,12 @@ public:
   void processPointCloud(const sensor_msgs::PointCloud2ConstPtr &cloud_input_msg);
 
   /**
+   * @brief Process incoming octomap point cloud message
+   * @param cloud_input_msg Input octomap point cloud message
+   */
+  void processOctomapPointCloud(const sensor_msgs::PointCloud2ConstPtr &cloud_input_msg);
+
+  /**
    * @brief Apply pass through filter to the input point cloud
    * @param in_cloud_ptr Input point cloud
    * @param out_cloud_ptr Output filtered point cloud

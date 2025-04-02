@@ -70,10 +70,33 @@ void PointCloudProcessing::pubFilteredPCMsg(ros::Publisher &pc_pub, PointC &pc) 
   pc_pub.publish(g_cloud_filtered_msg);
 }
 
+void PointCloudProcessing::processOctomapPointCloud(const sensor_msgs::PointCloud2ConstPtr &cloud_input_msg) {
+  // Extract octomap point cloud frame id
+  g_octomap_frame_id_ = cloud_input_msg->header.frame_id;
+  
+  // Convert ROS message to PCL point cloud
+  pcl_conversions::toPCL(*cloud_input_msg, g_octomap_pc);
+  pcl::fromPCLPointCloud2(g_octomap_pc, *g_octomap_ptr);
+
+  // Apply filtering to the octomap point cloud
+  g_octomap_pt.setInputCloud(g_octomap_ptr);
+  g_octomap_pt.setFilterFieldName("z");
+  g_octomap_pt.setFilterLimits(0.04, 0.5);
+  g_octomap_pt.filter(*g_octomap_filtered);
+  
+  ROS_INFO("Filtered octomap cloud has %lu points", g_octomap_filtered->size());
+}
+
 std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> 
 PointCloudProcessing::clusterPointClouds(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud) {
   // Vector to store the clusters
   std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> clusters;
+  
+  // Check if cloud is empty
+  if (cloud->empty()) {
+    ROS_ERROR("Cannot cluster an empty point cloud!");
+    return clusters;
+  }
 
   // Create the KdTree object for the search method of the extraction
   pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>);
