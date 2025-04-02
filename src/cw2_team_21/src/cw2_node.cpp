@@ -11,7 +11,7 @@ int main(int argc, char **argv){
   ros::NodeHandle nh;
 
   // create an instance of the cw2 class
-  cw2 cw_class(nh);
+  cw2::cw2 cw_class(nh);
 
   // MoveIt! requirement for non-blocking group.move()
   ros::AsyncSpinner spinner(1);

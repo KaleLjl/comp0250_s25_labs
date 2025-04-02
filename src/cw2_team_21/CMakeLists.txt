@@ -134,6 +134,12 @@ include_directories(
 # Declare a C++ library
 add_library(${PROJECT_NAME}_cw2_class_lib
   src/cw2_class.cpp
+  src/perception/image_processing.cpp
+  src/perception/point_cloud_processing.cpp
+  src/robot/robot_control.cpp
+  src/task1/pick_and_place.cpp
+  src/task2/shape_detection.cpp
+  src/task3/environment_scanner.cpp
 )
 
 ## Add cmake target dependencies of the library

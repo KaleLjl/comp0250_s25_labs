@@ -1,65 +1,113 @@
-Authors: Eddie Edwards (eddie.edwards@ucl.ac.uk), Kefeng Huang, Bowie (Heiyin) Wong, Dimitrios Kanoulas, Luke Beddow, Denis Hadjivelichkov
+# COMP0250: Robot Sensing, Manipulation and Interaction - Coursework 2 Instructions
 
-Description: This package forms the base ROS workspace for the module COMP0250 (formerly COMP0129): Robotic Sensing, Manipulation and Interaction.
+This document provides detailed instructions for setting up and running Coursework 2 for COMP0250.
 
-## Pre-Requisites
+## Repository Setup
+
+If you haven't cloned the repository yet:
 ```bash
-sudo apt install ros-noetic-franka-ros ros-noetic-libfranka
-```
-Gazebo physics simluator is also needed (http://gazebosim.org/). This can be installed and then run with:
-```bash
-curl -sSL http://get.gazebosim.org | sh
-gazebo
+git clone https://github.com/surgical-vision/comp0250_s25_labs.git --recurse-submodules
 ```
 
-## Installation
-```bash
-git clone --recurse-submodules https://github.com/surgical-vision/comp0250_s25_labs.git
-```
+If you already have the repository, update it:
 ```bash
 cd comp0250_s25_labs
-```
-```bash
-git submodule update --init --recursive
-```
-```bash
-catkin config --extend /opt/ros/${ROS_DISTRO} --cmake-args -DCMAKE_BUILD_TYPE=Release
-```
-```bash
-catkin build
+git pull --recurse-submodules
 ```
 
-## Run Panda robot Gazebo and rviz
+## Package Setup
+
+The coursework requires setting up a team-specific package:
+
+1. Create your team package by copying the template:
+   ```bash
+   cp -r src/cw2_team_x src/cw2_team_<your_team_number>
+   ```
+
+2. Update the following files with your team number:
+   - The package folder name: `src/cw2_team_<your_team_number>`
+   - In `launch/run_solution.launch` line 17: Change the package name
+   - In `package.xml` line 3: Update the package name
+   - In `CMakeLists.txt` line 2: Update the project name
+
+## Building the Project
+
+1. Navigate to the project directory:
+   ```bash
+   cd ~/comp0250_s25_labs
+   ```
+
+2. Build the project using catkin:
+   ```bash
+   catkin build
+   ```
+
+3. Source the setup file:
+   ```bash
+   source devel/setup.bash
+   ```
+
+## Running the Solution
+
+Launch your team's solution:
 ```bash
-source devel/setup.bash
+roslaunch cw2_team_<your_team_number> run_solution.launch
+roslaunch cw2_team_21 run_solution.launch
 ```
+
+This will start:
+- The Panda robot model in Gazebo
+- The world spawner for the coursework
+- The octomap server for environment mapping
+- Your team's solution node
+
+## Running the Tasks
+
+After launching your solution, you can run each task using ROS service calls:
+
+### Task 1: Pick and Place at Given Positions
 ```bash
-roslaunch panda_description description.launch
+rosservice call /task 1
 ```
+- Robot picks up a shape (nought or cross) from a given position
+- Places it into a brown basket
+- Shape can have any orientation
+- Size is 40mm
 
-## Package Preparation (not to be ran by students):
+### Task 2: Shape Detection
 ```bash
-mkdir src
-git submodule add https://github.com/COMP0129-UCL/panda_moveit_config.git src/panda_moveit_config
-git submodule add https://github.com/COMP0129-UCL/panda_description.git src/panda_description
-git submodule add https://github.com/RPL-CS-UCL/realsense_gazebo_plugin.git src/realsense_gazebo_plugin 
-git submodule add https://github.com/RPL-CS-UCL/rpl_panda_with_rs.git src/rpl_panda_with_rs
+rosservice call /task 2
 ```
+- Three shapes are spawned: two reference shapes and one mystery shape
+- Robot must determine which reference shape the mystery shape matches
+- Returns 1 or 2 to indicate which reference shape matches
 
-## License
-LICENSE: MIT.  See [LICENSE.txt](LICENSE.txt)
+### Task 3: Planning and Execution
+```bash
+rosservice call /task 3
+```
+- Multiple shapes (up to 7) and obstacles (up to 4) are spawned
+- Robot must:
+  1. Count the total number of shapes (excluding obstacles)
+  2. Determine which shape type (nought or cross) is more common
+  3. Pick and place one example of the most common shape into the basket
+- Shapes can vary in size (20mm, 30mm, or 40mm)
 
-DISCLAIMER:
+## Debugging
 
-THIS INFORMATION AND/OR SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY
-EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
-OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS INFORMATION AND/OR
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+If you encounter issues:
 
-Copyright (C) 2019-2024 Dimitrios Kanoulas and Eddie Edwards except where specified
+1. Check ROS console output for error messages
+2. Verify your package is properly built and sourced
+3. Ensure all dependencies are installed
+4. Examine your solution's code for logical errors
+
+## Important Parameters
+
+The world spawner allows modification of parameters for testing:
+
+- Task 1: `T1_ANY_ORIENTATION` (True/False)
+- Task 2: `T2_ANY_ORIENTATION` (True/False), `T2_GROUND_PLANE_NOISE` (0e-3/50e-3)
+- Task 3: `T3_ANY_ORIENTATION` (True/False), `T3_N_OBSTACLES` (0/2/3/4), `T3_USE_MULTIPLE_SIZES` (True/False)
+
+You can modify these in `src/cw2_world_spawner/scripts/world_spawner.py` to make testing easier during development.
